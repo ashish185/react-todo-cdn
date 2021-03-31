@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Task Add app</title>
+  <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+
+  <!-- Don't use this in production: -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    class Main extends React.Component {
+      render() {
+        return <HomePage />;
+      }
+    }
+    class HomePage extends React.Component {
+      state = {
+        taskVal: "",
+        dateVal: "",
+        minDateVal: "",
+        maxDateVal: "",
+        arrayOfTask: [],
+        countOfActveTask: 0,
+      };
+      handleTaskValue(e) {
+        this.setState({ taskVal: e.target.value });
+      }
+      componentDidMount() {
+        const dateObj = new Date();
+        let _presentDate =
+          dateObj.getFullYear() +
+          "-" +
+          (dateObj.getMonth() + 1) +
+          "-" +
+          dateObj.getDate();
+        //Setting the maximum date to 5 yrs ahead from now
+        dateObj.setFullYear(dateObj.getFullYear() + 5);
+        let _futureDateFiveAhead =
+          dateObj.getFullYear() +
+          "-" +
+          (dateObj.getMonth() + 1) +
+          "-" +
+          dateObj.getDate();
+        this.setState({
+          ...this.state,
+          dateVal: _presentDate,
+          minDateVal: _presentDate,
+          maxDateVal: _futureDateFiveAhead,
+        });
+      }
+
+      handleDate = (e) => {
+        const de = e.target.value;
+        this.setState({ dateVal: de });
+      };
+      handleAdd = () => {
+        if (this.state.taskVal && this.state.dateVal) {
+          const obj = {
+            taskVal: this.state.taskVal,
+            dateVal: this.state.dateVal,
+            show: true,
+          };
+          const dateObj = new Date();
+          let _presentDate =
+            dateObj.getFullYear() +
+            "-" +
+            (dateObj.getMonth() + 1) +
+            "-" +
+            dateObj.getDate();
+          this.setState({
+            arrayOfTask: [...this.state.arrayOfTask, obj],
+            dateVal: _presentDate,
+            taskVal: "",
+            countOfActveTask: this.state.countOfActveTask + 1,
+          });
+        }
+      };
+      handleDelete = (index, check) => {
+        const arr = [
+          ...this.state.arrayOfTask.slice(0, index),
+          ...this.state.arrayOfTask.slice(
+            index + 1,
+            this.state.arrayOfTask.length + 1
+          ),
+        ];
+        const newArr = this.state.arrayOfTask.map((el, i) => {
+          if (index === i) {
+            return {
+              taskVal: el.taskVal,
+              dateVal: el.dateVal,
+              show: check ? true : false,
+            };
+          }
+          return el;
+        });
+        this.setState({
+          arrayOfTask: newArr,
+          countOfActveTask:check?this.state.countOfActveTask +1: this.state.countOfActveTask - 1,
+        });
+      };
+      render() {
+        //onSubmit={(e)=> e.preventDefault}
+        return (
+          <React.Fragment>
+            <form
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "baseline",
+              }}
+            >
+              <label>Task:</label>
+              <input
+                style={{
+                  marginLeft: "10px",
+                  padding: "3px",
+                }}
+                type="text"
+                placeholder="Enter your task here"
+                value={this.state.taskVal}
+                onChange={this.handleTaskValue.bind(this)}
+                required
+              ></input>
+              <input type="date"
+                style={{
+                  marginLeft: "10px",
+                }}
+                value={this.state.dateVal}
+                min={this.state.minDateVal}
+                max={this.state.maxDateVal}
+                onChange={(e) => this.handleDate(e)}
+                required
+              />
+              {/* <div>{this.state.dateVal}</div> */}
+            </form>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                marginTop: "5px",
+              }}
+            >
+              <button onClick={() => this.handleAdd()}>Add task</button>
+            </div>
+            {this.state.arrayOfTask.length ? (
+              <TableData
+                arrayOfTask={this.state.arrayOfTask}
+                countOfActveTask={this.state.countOfActveTask}
+                handleDelete={this.handleDelete}
+              />
+            ) : null}
+          </React.Fragment>
+        );
+      }
+    }
+    const TableData = (props) => {
+      return (
+        <div
+          style={{
+            display: "flex",
+            marginTop: "10px",
+            justifyContent: "center",
+            alignItems: "baseline",
+          }}
+        >
+          <table>
+            <caption style={{ textAlign: "right" }}>
+              <b>{props.countOfActveTask + " task(s)"}</b>
+            </caption>
+            <tbody>
+              {props.arrayOfTask.map((el, indx) => {
+                return (
+                  <tr key={indx}>
+                    <td>[ {indx + 1} ]</td>
+                    {el.show ? (
+                      <React.Fragment>
+                        <td>{el.taskVal + " - " + el.dateVal}</td>
+                        <td>
+                          <span
+                            style={{ marginLeft: "200px" }}
+                            onClick={() => {
+                              props.handleDelete(indx, "");
+                            }}
+                          >
+                            X
+                      </span>
+                        </td>
+                      </React.Fragment>
+                    ) : (
+                        <td>
+                          <del
+                            onClick={() => {
+                              props.handleDelete(indx, "readd");
+                            }}
+                          >
+                            {el.taskVal + " - " + el.dateVal}
+                          </del>
+                        </td>
+                      )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      );
+    };
+    // It must be writte down
+    ReactDOM.render(<Main />, document.getElementById("root"));
+  </script>
+</body>
+
+</html>
